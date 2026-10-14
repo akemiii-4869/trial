@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinoy Quest: Philippine Quiz Snakes & Ladders</title>
+    <!-- Tailwind CSS for Responsive Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="game" class="bg-slate-900 text-slate-100 font-sans min-h-screen pb-12">
+
+    <!-- Header Section -->
+    <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-lg mb-6">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <img class="header-mascot" src="pinoy-quest-mascot.png" alt="Pinoy Quest mascot">
+                <div>
+                    <h1 class="text-2xl font-black tracking-wide text-amber-400">PINOY QUEST</h1>
+                    <p class="text-xs text-slate-400">Philippine Quiz Snakes & Ladders Edition</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+             
+                <a href="index.html" id="btn-main-menu" class="bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition shadow">🏠 Back to Main Menu</a>
+                <button id="btn-reset" class="bg-rose-600 hover:bg-rose-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition shadow">
+                    🔄 Restart Game
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Game Board (8 cols on lg) -->
+        <section class="lg:col-span-8 flex flex-col items-center">
+            <div class="relative w-full max-w-[650px] aspect-square bg-slate-800 rounded-2xl p-3 border-2 border-slate-700 shadow-2xl overflow-hidden">
+                <!-- Decorative SVG symbols used by the existing board overlay (visual only) -->
+                <svg aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden">
+                  <defs>
+                    <marker id="cartoon-snake-head" markerWidth="6" markerHeight="6" refX="2.8" refY="3" orient="auto" markerUnits="strokeWidth" viewBox="0 0 6 6">
+                      <path d="M1 3 Q.8 .7 3 .7 Q5.6 .7 5.5 3 Q5.6 5.4 3 5.4 Q.8 5.4 1 3Z" fill="#ed755d" stroke="#813e37" stroke-width=".3"/>
+                      <circle cx="3.3" cy="1.9" r=".38" fill="#fff"/><circle cx="3.4" cy="2" r=".2" fill="#302323"/>
+                      <circle cx="3.3" cy="4.1" r=".38" fill="#fff"/><circle cx="3.4" cy="4" r=".2" fill="#302323"/>
+                      <path d="M5.2 3 L5.9 3" stroke="#d44150" stroke-width=".3" stroke-linecap="round"/>
+                    </marker>
+                    <marker id="cartoon-ladder-end" markerWidth="3" markerHeight="3" refX="1.5" refY="1.5" orient="auto" markerUnits="strokeWidth" viewBox="0 0 3 3">
+                      <rect x=".5" y=".6" width="2" height="1.8" rx=".4" fill="#a66a34" stroke="#744822" stroke-width=".3"/>
+                    </marker>
+                  </defs>
+                </svg>
+                <!-- SVG Overlay for Ladder Lines -->
+                <svg id="ladder-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></svg>
+                <svg id="cartoon-board-art" class="absolute inset-0 w-full h-full pointer-events-none z-10" aria-hidden="true"></svg>
+                
+                <!-- 10x10 Grid Container -->
+                <div id="board-grid" class="w-full h-full grid grid-cols-10 grid-rows-10 gap-1 sm:gap-1.5"></div>
+            </div>
+        </section>
+
+        <!-- Right Column: Control Panel & Scoreboard (4 cols on lg) -->
+        <section class="lg:col-span-4 flex flex-col gap-6 w-full">
+            
+            <!-- Turn & Controls Card -->
+            <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Current Turn</h2>
+                <div id="active-player-display" class="flex items-center justify-between bg-slate-900/80 p-3.5 rounded-xl border border-slate-700 mb-5">
+                    <div class="flex items-center space-x-3">
+                        <span id="p-avatar" class="text-3xl">🇵🇭</span>
+                        <div>
+                            <p id="p-name" class="font-bold text-lg text-amber-300">Player 1</p>
+                            <p id="p-pos" class="text-xs text-slate-400">Position: Tile 1</p>
+                        </div>
+                    </div>
+                    <span id="p-type" class="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-900/60 text-blue-300 border border-blue-700">HUMAN</span>
+                </div>
+
+                <!-- Dice Area -->
+                <div class="flex flex-col items-center justify-center bg-slate-900/50 p-6 rounded-xl border border-slate-700/60">
+                    <div id="dice" class="dice-box w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-4xl font-extrabold text-slate-950 shadow-lg mb-4">
+                        🎲
+                    </div>
+                    <button id="btn-roll" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black py-3 px-6 rounded-xl text-lg shadow-lg hover:shadow-amber-500/20 active:scale-95 transition transform">
+                        ROLL DICE
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scoreboard -->
+            <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Player Standings</h2>
+                <div id="scoreboard-list" class="space-y-2.5">
+                    <!-- Dynamic Player Items injected here -->
+                </div>
+            </div>
+
+            <!-- Match Action Log -->
+            <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Match History</h2>
+                <div id="game-log" class="h-32 overflow-y-auto text-xs space-y-1.5 pr-2 text-slate-300 font-mono">
+                    <p class="text-slate-500 italic">Game initialized. Good luck players!</p>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Turn notification: non-blocking and accessible -->
+    <div id="turn-toast" role="status" aria-live="polite" aria-atomic="true" class="pq-turn-toast" hidden>
+      <div class="pq-turn-toast-icon" id="turn-toast-icon">🎲</div>
+      <div><strong id="turn-toast-title">YOUR TURN!</strong><span id="turn-toast-detail">Roll the dice to play.</span></div>
+    </div>
+
+    <!-- Modal 1: Player Setup Modal -->
+    <div id="modal-setup" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl">
+            <h2 class="text-2xl font-black text-amber-400 mb-1">🎮 Game Setup</h2>
+            <p class="text-xs text-slate-400 mb-5">Select number of players (2 to 4) and set their modes.</p>
+
+            <!-- Number of Players selector -->
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-slate-300 uppercase mb-2">How many players?</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <button type="button" class="btn-count bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-lg border border-slate-600 active-count" data-count="2">2 Players</button>
+                    <button type="button" class="btn-count bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-lg border border-slate-600" data-count="3">3 Players</button>
+                    <button type="button" class="btn-count bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-lg border border-slate-600" data-count="4">4 Players</button>
+                </div>
+            </div>
+
+            <!-- Player Settings List -->
+            <div id="player-inputs-container" class="space-y-3 mb-6 max-h-60 overflow-y-auto pr-1">
+                <!-- Dynamic Player Config Rows -->
+            </div>
+
+            <button id="btn-start-game" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3 rounded-xl text-base shadow-lg transition">
+                START PINOY QUEST
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 2: Philippine General Knowledge Quiz Challenge -->
+    <div id="modal-quiz" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border-2 border-amber-500/50 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative overflow-hidden">
+            <!-- Timer Bar -->
+            <div class="absolute top-0 left-0 right-0 h-2 bg-slate-700">
+                <div id="quiz-timer-bar" class="h-full bg-amber-400 transition-all duration-1000 w-full"></div>
+            </div>
+
+            <div class="flex items-center justify-between mb-4 mt-2">
+                <span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                    ❓ Philippine Trivia Challenge
+                </span>
+                <span id="quiz-timer-text" class="text-sm font-mono font-bold text-amber-400">⏱️ 15s</span>
+            </div>
+
+            <h3 id="quiz-question" class="text-lg font-bold text-slate-100 mb-6 leading-snug">
+                Question placeholder goes here?
+            </h3>
+
+            <!-- Choices -->
+            <div id="quiz-options" class="grid grid-cols-1 gap-3 mb-4">
+                <!-- Dynamic Answer Buttons -->
+            </div>
+
+            <p class="text-xs text-slate-400 text-center italic">
+                Note: Answering incorrectly or running out of time returns you to your previous tile!
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal 3: Victory Celebration -->
+    <div id="modal-victory" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border-2 border-amber-400 rounded-2xl max-w-md w-full p-8 text-center shadow-2xl">
+            <div class="text-6xl mb-3 animate-bounce">🏆</div>
+            <h2 class="text-3xl font-black text-amber-400 mb-1">VICTORY!</h2>
+            <p id="winner-name" class="text-xl font-bold text-slate-100 mb-4">Player 1 wins!</p>
+            <p class="text-sm text-slate-300 mb-6">Congratulations! You navigated the Philippines board and reached Tile 100!</p>
+            <button id="btn-victory-restart" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-lg shadow-lg">
+                PLAY AGAIN
+            </button>
+            <button id="btn-victory-new-game" type="button" class="mt-3 w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl text-lg shadow-lg">
+                NEW GAME
+            </button>
+        </div>
+    </div>
+
+    <!-- RESTART REQUEST MODAL -->
+<div id="modal-reset-request" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
+        <h3 class="text-xl font-extrabold text-amber-400">🔄 Game Restart Requested</h3>
+        <p id="reset-request-text" class="text-slate-300 text-sm">A player wants to restart the game. Do you accept?</p>
+        <div class="flex justify-center gap-3 pt-2">
+            <button id="btn-accept-reset" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-5 rounded-xl transition text-sm">
+                ✅ Accept
+            </button>
+            <button id="btn-decline-reset" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 px-5 rounded-xl transition text-sm">
+                ❌ Decline
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- WAITING FOR RESET ACCEPTANCE MODAL -->
+<div id="modal-waiting-reset" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
+        <h3 class="text-xl font-extrabold text-amber-400">⏳ Restart Requested</h3>
+        <p class="text-slate-300 text-sm">Waiting for other players to accept the restart request...</p>
+        <div class="flex justify-center pt-2">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- GENERIC GAME ALERT MODAL -->
+<div id="modal-game-alert" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
+        <h3 id="game-alert-title" class="text-xl font-extrabold text-amber-400">Notice</h3>
+        <p id="game-alert-message" class="text-slate-300 text-sm">Message goes here...</p>
+        <div class="flex justify-center pt-2">
+            <button id="btn-close-game-alert" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2 px-6 rounded-xl transition text-sm">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+    <!-- Link to JavaScript Code -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
+<script src="board-art.js"></script>
+</body>
+</html>

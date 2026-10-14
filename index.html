@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinoy Quest: Philippine Quiz Snakes & Ladders - Main Menu</title>
+    <!-- Tailwind CSS for Responsive Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Firebase App SDK & Realtime Database CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body data-page="home" class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between p-6">
+
+    <!-- Top Branding / Decoration -->
+    <div class="max-w-4xl mx-auto w-full flex justify-between items-center pt-4">
+        <div class="flex items-center space-x-2 text-sm text-amber-400 font-semibold tracking-wider uppercase">
+            <span>🇵🇭</span>
+            <span>Philippine Educational Game</span>
+        </div>
+        <span class="text-xs bg-slate-900 text-slate-400 px-3 py-1 rounded-full border border-slate-800">v1.0 Edition</span>
+    </div>
+
+    <!-- Center Hero & Navigation Buttons -->
+    <div class="max-w-xl mx-auto w-full text-center my-auto py-8">
+        <div class="mascot-hero"><img src="pinoy-quest-mascot.png" alt="Pinoy Quest cartoon mascot with snakes and ladders"></div>
+        
+        <h1 class="text-5xl sm:text-6xl font-black tracking-tight text-amber-400 mb-2 drop-shadow-md">
+            PINOY QUEST
+        </h1>
+        <p class="text-base sm:text-lg text-slate-300 font-medium mb-8">
+            Philippine Quiz Snakes & Ladders 
+        </p>
+
+        <!-- Menu Action Buttons -->
+        <div class="space-y-4 max-w-md mx-auto">
+            <a href="game.html?setup=true" class="block w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black py-4 px-8 rounded-xl text-xl shadow-lg hover:shadow-amber-500/20 active:scale-95 transition transform text-center">
+                🎮 LOCAL PLAY
+            </a>
+            
+            <button id="btn-toggle-online" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-6 rounded-xl text-base shadow transition">
+                🌐 ONLINE MULTIPLAYER
+            </button>
+
+            <button id="btn-menu-rules" class="w-full bg-slate-900/60 hover:bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800/80 font-semibold py-3 px-6 rounded-xl text-sm transition">
+                📖 HOW TO PLAY
+            </button>
+        </div>
+
+        <!-- Online Multiplayer Hidden Card -->
+        <div id="online-card" class="max-w-md mx-auto w-full bg-slate-900 border border-slate-800 rounded-2xl p-5 mt-6 hidden text-left">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-amber-400 text-sm uppercase tracking-wide">Multiplayer Room</h3>
+                <button id="btn-close-online" class="text-slate-400 hover:text-white text-xs font-bold">✕ CLOSE</button>
+            </div>
+            <div class="space-y-4">
+                <!-- Custom Username Input -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Your Nickname</label>
+                    <input type="text" id="menu-username-input" placeholder="ENTER YOUR NAME" maxlength="15" class="bg-slate-800 text-slate-100 text-xs font-bold uppercase px-3 py-2 rounded-xl border border-slate-700 w-full focus:outline-none">
+                </div>
+
+                <!-- Player Count Selection for Host -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Max Players (Host Only)</label>
+                    <div class="grid grid-cols-3 gap-2" id="menu-player-count-btns">
+                        <button type="button" data-count="2" class="menu-count-btn bg-amber-500 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition">2 Players</button>
+                        <button type="button" data-count="3" class="menu-count-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-1.5 rounded-lg text-xs transition">3 Players</button>
+                        <button type="button" data-count="4" class="menu-count-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-1.5 rounded-lg text-xs transition">4 Players</button>
+                    </div>
+                </div>
+
+                <button onclick="createOnlineRoomMenu()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition shadow">
+                    ➕ Host New Room
+                </button>
+                <div class="flex gap-2">
+                    <input type="text" id="menu-room-input" placeholder="ENTER CODE" class="bg-slate-800 text-slate-100 text-xs font-bold uppercase px-3 py-2 rounded-xl border border-slate-700 w-full focus:outline-none">
+                    <button onclick="joinOnlineRoomMenu()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-xl text-xs whitespace-nowrap transition shadow">
+                        Join
+                    </button>
+                </div>
+            </div>
+        </div>
+    <!-- How to Play Quick Overview Box -->
+    <div id="rules-card" class="text-left max-w-md mx-auto w-full bg-slate-900 border border-slate-800 rounded-2xl p-5 mt-5 hidden">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-amber-400 text-sm uppercase tracking-wider">How to Play</h3>
+            <button id="btn-close-rules" class="text-slate-400 hover:text-white text-xs font-bold">✕ CLOSE</button>
+        </div>
+        <ul class="text-left text-xs text-slate-300 space-y-2 list-disc list-outside pl-5 leading-relaxed">
+            <li>Roll the dice and race to reach <strong>Tile 100</strong>.</li>
+            <li>Ladders boost your position forward on the board.</li>
+            <li>Landing on special tiles requires answering <strong>Philippine trivia questions</strong>.</li>
+            <li>Answer correctly to maintain your spot; wrong answers send you back to your previous tile!</li>
+        </ul>
+    </div>
+
+    </div>
+
+    <!-- ROOM CREATED MODAL -->
+    <div id="modal-room-created" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
+            <div class="inline-block p-3 bg-amber-500/10 rounded-full border border-amber-500/20 text-3xl">
+                🎉
+            </div>
+            <h3 class="text-xl font-extrabold text-amber-400">Room Created Successfully!</h3>
+            <p class="text-slate-300 text-sm">Share this code with your friends:</p>
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 font-mono text-xl font-bold text-amber-400 tracking-wider select-all" id="room-code-display">
+                ROOM_CODE
+            </div>
+            <p class="text-xs text-slate-500">(Room code copied to clipboard!)</p>
+            <button id="btn-enter-room" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition shadow">
+                🚀 Enter Room
+            </button>
+        </div>
+    </div>
+
+    <!-- GENERIC GAME ALERT MODAL -->
+    <div id="modal-game-alert" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
+            <h3 id="game-alert-title" class="text-xl font-extrabold text-amber-400">Notice</h3>
+            <p id="game-alert-message" class="text-slate-300 text-sm">Message goes here...</p>
+            <div class="flex justify-center pt-2">
+                <button id="btn-close-game-alert" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2 px-6 rounded-xl transition text-sm">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="max-w-4xl mx-auto w-full text-center text-xs text-slate-600 pt-4">
+        Pinoy Quest &copy; 2026. Made for Philippine History & Culture Trivia.
+    </footer>
+
+    <!-- Menu Control & Firebase Connection Script -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVvAmovZJVFdPfkcc3pwlE1iwlYQOWIGk",
+            authDomain: "snake-and-ladder-5319f.firebaseapp.com",
+            databaseURL: "https://snake-and-ladder-5319f-default-rtdb.firebaseio.com",
+            projectId: "snake-and-ladder-5319f",
+            storageBucket: "snake-and-ladder-5319f.firebasestorage.app",
+            messagingSenderId: "1039047969635",
+            appId: "1:1039047969635:web:ec8fa82d7883a347316156",
+            measurementId: "G-3P7JMECBVB"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Modal Elements
+        const modalGameAlertEl = document.getElementById('modal-game-alert');
+        const gameAlertTitleEl = document.getElementById('game-alert-title');
+        const gameAlertMessageEl = document.getElementById('game-alert-message');
+        const btnCloseGameAlertEl = document.getElementById('btn-close-game-alert');
+
+        if (btnCloseGameAlertEl) {
+            btnCloseGameAlertEl.addEventListener('click', () => {
+                if (modalGameAlertEl) modalGameAlertEl.classList.add('hidden');
+            });
+        }
+
+        function showGameAlert(message, title = "Notice") {
+            if (gameAlertTitleEl) gameAlertTitleEl.textContent = title;
+            if (gameAlertMessageEl) gameAlertMessageEl.textContent = message;
+            if (modalGameAlertEl) modalGameAlertEl.classList.remove('hidden');
+        }
+
+        // Board Layout Variables
+        let LADDERS = {};
+        let SNAKES = {};
+        let QUIZ_TILES = [];
+
+        // Track selected player count in menu (Default is 2)
+        let menuSelectedCount = 2;
+
+        document.querySelectorAll('.menu-count-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.menu-count-btn').forEach(b => {
+                    b.className = "menu-count-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-1.5 rounded-lg text-xs transition";
+                });
+                e.target.className = "menu-count-btn bg-amber-500 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition";
+                menuSelectedCount = parseInt(e.target.getAttribute('data-count'));
+            });
+        });
+
+        // Board Generation Logic for Host
+        function generateRandomBoardLayout() {
+            LADDERS = {};
+            SNAKES = {};
+            QUIZ_TILES = [];
+
+            const shuffle = (array) => {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            };
+
+            // Use the same carefully arranged board as local play.
+            // This is saved once to Firebase when the host creates a room.
+            LADDERS = { 2:20, 5:16, 11:31, 18:40, 23:38, 35:56, 48:68, 60:80 };
+            SNAKES = { 32:12, 44:25, 58:42, 69:51, 78:64, 85:65, 90:72, 96:81 };
+
+            const occupiedTiles = new Set([1, 100, ...Object.keys(LADDERS).map(Number), ...Object.values(LADDERS), ...Object.keys(SNAKES).map(Number), ...Object.values(SNAKES)]);
+            let availableTiles = [];
+            for (let i = 2; i < 100; i++) {
+                if (!occupiedTiles.has(i)) {
+                    availableTiles.push(i);
+                }
+            }
+
+            availableTiles = shuffle(availableTiles);
+            QUIZ_TILES = availableTiles.slice(0, 42);
+        }
+
+        // Rules Toggle Logic
+        const btnRules = document.getElementById('btn-menu-rules');
+        const rulesCard = document.getElementById('rules-card');
+        const btnCloseRules = document.getElementById('btn-close-rules');
+
+        btnRules.addEventListener('click', () => {
+            rulesCard.classList.toggle('hidden');
+            if (!rulesCard.classList.contains('hidden')) {
+                requestAnimationFrame(() => rulesCard.scrollIntoView({ behavior: 'smooth', block: 'end' }));
+            }
+        });
+        btnCloseRules.addEventListener('click', () => rulesCard.classList.add('hidden'));
+
+        // Online Menu Toggle Logic
+        const btnToggleOnline = document.getElementById('btn-toggle-online');
+        const onlineCard = document.getElementById('online-card');
+        const btnCloseOnline = document.getElementById('btn-close-online');
+
+        btnToggleOnline.addEventListener('click', () => {
+            onlineCard.classList.toggle('hidden');
+            if (!onlineCard.classList.contains('hidden')) {
+                requestAnimationFrame(() => {
+                    onlineCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+        });
+        btnCloseOnline.addEventListener('click', () => onlineCard.classList.add('hidden'));
+
+        // Online Room Actions from Menu
+        function createOnlineRoomMenu() {
+            const username = document.getElementById('menu-username-input').value.trim() || "Host (P1)";
+            const roomId = "ROOM_" + Math.random().toString(36).substring(2, 7).toUpperCase();
+            
+            generateRandomBoardLayout();
+
+            const roomRef = db.ref('rooms/' + roomId);
+            
+            roomRef.set({
+                gameActive: true,
+                maxPlayers: menuSelectedCount,
+                currentPlayerIdx: 0,
+                boardLayout: { 
+                    ladders: LADDERS, 
+                    snakes: SNAKES, 
+                    quizTiles: QUIZ_TILES 
+                },
+                players: [
+                    { id: 0, name: username, avatar: "🇵🇭", position: 1, color: "#f59e0b", isAI: false, online: true }
+                ]
+            }).then(() => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(roomId);
+                }
+                
+                // Display room code inside the modal and reveal it instead of alert
+                document.getElementById('room-code-display').textContent = roomId;
+                document.getElementById('modal-room-created').classList.remove('hidden');
+                
+                // Wire up Enter Room button redirection
+                document.getElementById('btn-enter-room').onclick = () => {
+                    window.location.href = `game.html?room=${roomId}&player=0`;
+                };
+            }).catch(err => {
+                console.error(err);
+                showGameAlert("Error creating room. Check console for details.", "System Error");
+            });
+        }
+
+        function joinOnlineRoomMenu() {
+            const username = document.getElementById('menu-username-input').value.trim() || "Player";
+            const roomId = document.getElementById('menu-room-input').value.trim().toUpperCase();
+            
+            if (!roomId) {
+                showGameAlert("Please enter a valid room code!", "Input Required");
+                return;
+            }
+
+            const roomRef = db.ref('rooms/' + roomId);
+            roomRef.once('value', (snapshot) => {
+                const roomData = snapshot.val();
+                if (!roomData) {
+                    showGameAlert("Room not found! Please check the code and try again.", "Error");
+                    return;
+                }
+
+                const currentCount = roomData.players.length;
+                const maxAllowed = roomData.maxPlayers || 4;
+
+                if (currentCount >= maxAllowed) {
+                    showGameAlert(`Room is already full! (Max allowed for this room is ${maxAllowed} players)`, "Room Full");
+                    return;
+                }
+
+                roomData.players.push({
+                    id: currentCount,
+                    name: username,
+                    avatar: ['🇵🇭', '🦅', '🌋', '🥭'][currentCount],
+                    position: 1,
+                    color: ['#f59e0b', '#3b82f6', '#10b981', '#ec4899'][currentCount],
+                    isAI: false,
+                    online: true
+                });
+
+                roomRef.update({ players: roomData.players }).then(() => {
+                    window.location.href = `game.html?room=${roomId}&player=${currentCount}`;
+                });
+            });
+        }
+    </script>
+</body>
+</html>
